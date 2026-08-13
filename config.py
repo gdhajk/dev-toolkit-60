@@ -1,53 +1,47 @@
-from typing import Dict, Any
+from typing import Dict
 
 class Config:
-    """Configuration class for the autoclicker settings."""
-
-    def __init__(self, settings: Dict[str, Any]) -> None:
-        """Initializes the Config with the provided settings.
-
+    """Configuration for the autoclicker tool."""
+    def __init__(self, settings: Dict[str, str]) -> None:
+        """Initializes the configuration with given settings.
+        
         Args:
-            settings (Dict[str, Any]): A dictionary containing configuration settings.
+            settings (Dict[str, str]): A dictionary of configuration settings.
         """
         self.settings = settings
 
-    def get(self, key: str, default: Any = None) -> Any:
-        """Retrieve a configuration value by key.
-
+    def get(self, key: str) -> str:
+        """Fetches a configuration value by key.
+        
         Args:
-            key (str): The key of the setting to retrieve.
-            default (Any): The default value to return if the key doesn't exist.
-
+            key (str): The key of the configuration setting.
+        
         Returns:
-            Any: The value associated with the given key, or default if not found.
+            str: The value of the configuration setting.
         """
-        return self.settings.get(key, default)
+        return self.settings.get(key, '')
 
-    def set(self, key: str, value: Any) -> None:
+    def set(self, key: str, value: str) -> None:
         """Sets a configuration value by key.
-
+        
         Args:
-            key (str): The key of the setting to set.
-            value (Any): The value to set for the specified key.
+            key (str): The key of the configuration setting.
+            value (str): The value to set for the configuration.
         """
         self.settings[key] = value
 
-    def load_from_file(self, filepath: str) -> None:
-        """Loads configurations from a specified file.
-
+    def load(self, filepath: str) -> None:
+        """Loads configuration settings from a file.
+        
         Args:
             filepath (str): The path to the configuration file.
         """
-        import json
-        with open(filepath, 'r') as file:
-            self.settings = json.load(file)  
+        # Implementation would go here to read from a file
 
-    def save_to_file(self, filepath: str) -> None:
-        """Saves current configurations to a specified file.
-
+    def save(self, filepath: str) -> None:
+        """Saves current configuration settings to a file.
+        
         Args:
-            filepath (str): The path to the file where settings should be saved.
+            filepath (str): The path to the configuration file.
         """
-        import json
-        with open(filepath, 'w') as file:
-            json.dump(self.settings, file, indent=4)
+        # Implementation would go here to write to a file
