@@ -1,47 +1,27 @@
-from typing import Dict
+import logging
+import os
+from logging.handlers import RotatingFileHandler
 
-class Config:
-    """Configuration for the autoclicker tool."""
-    def __init__(self, settings: Dict[str, str]) -> None:
-        """Initializes the configuration with given settings.
-        
-        Args:
-            settings (Dict[str, str]): A dictionary of configuration settings.
-        """
-        self.settings = settings
+# Define the log directory and file
+LOG_DIR = os.path.join(os.path.dirname(__file__), 'logs')
+LOG_FILE = 'app.log'
 
-    def get(self, key: str) -> str:
-        """Fetches a configuration value by key.
-        
-        Args:
-            key (str): The key of the configuration setting.
-        
-        Returns:
-            str: The value of the configuration setting.
-        """
-        return self.settings.get(key, '')
+# Create logs directory if it doesn't exist
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
 
-    def set(self, key: str, value: str) -> None:
-        """Sets a configuration value by key.
-        
-        Args:
-            key (str): The key of the configuration setting.
-            value (str): The value to set for the configuration.
-        """
-        self.settings[key] = value
+def setup_logger(name):
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
 
-    def load(self, filepath: str) -> None:
-        """Loads configuration settings from a file.
-        
-        Args:
-            filepath (str): The path to the configuration file.
-        """
-        # Implementation would go here to read from a file
+    # Create a rotating file handler
+    handler = RotatingFileHandler(
+        os.path.join(LOG_DIR, LOG_FILE),
+        maxBytes=5 * 1024 * 1024,  # 5 MB
+        backupCount=3
+    )
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
 
-    def save(self, filepath: str) -> None:
-        """Saves current configuration settings to a file.
-        
-        Args:
-            filepath (str): The path to the configuration file.
-        """
-        # Implementation would go here to write to a file
+    logger.addHandler(handler)
+    return logger
