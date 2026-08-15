@@ -1,53 +1,35 @@
-from typing import Optional, Tuple
+import time
+import threading
 
 class AutoClicker:
-    def __init__(self, click_interval: float, repetitions: Optional[int] = None) -> None:
-        """
-        Initializes the AutoClicker with a click interval and optional repetitions.
-
-        Args:
-            click_interval (float): The time interval between clicks in seconds.
-            repetitions (Optional[int]): The number of clicks to perform. If None, clicks indefinitely.
-        """
-        self.click_interval = click_interval
-        self.repetitions = repetitions
+    def __init__(self, interval=0.1):
+        self.interval = interval  # time in seconds
         self.running = False
+        self.click_thread = None
 
-    def start(self) -> None:
-        """
-        Starts the auto-clicking process.
-        """
-        if self.running:
-            return
-        self.running = True
-        self._click_loop()
+    def start(self):
+        if not self.running:
+            self.running = True
+            self.click_thread = threading.Thread(target=self._click_loop)
+            self.click_thread.start()
 
-    def stop(self) -> None:
-        """
-        Stops the auto-clicking process.
-        """
+    def stop(self):
         self.running = False
+        if self.click_thread:
+            self.click_thread.join()  # wait for thread to finish
 
-    def _click_loop(self) -> None:
-        """
-        The loop that performs the clicking at the specified interval.
-        """
-        import time
-        clicks_performed = 0
-
+    def _click_loop(self):
         while self.running:
-            self._perform_click()
-            clicks_performed += 1
-            if self.repetitions is not None and clicks_performed >= self.repetitions:
-                break
-            time.sleep(self.click_interval)
+            self.single_click()
+            time.sleep(self.interval)
 
-    def _perform_click(self) -> None:
-        """
-        Simulates a click event.
-        """
-        print("Click!")  # Replace with actual click logic
+    def single_click(self):
+        # Add actual clicking mechanism here
+        print('Click!')
 
+# Example usage:
 if __name__ == '__main__':
-    auto_clicker = AutoClicker(0.5, 10)  # Click every 0.5 seconds, up to 10 times
-    auto_clicker.start()  # Start clicking
+    auto_clicker = AutoClicker(interval=0.05)
+    auto_clicker.start()
+    time.sleep(1)  # Let it click for a second
+    auto_clicker.stop()
