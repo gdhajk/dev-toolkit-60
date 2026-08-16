@@ -1,43 +1,43 @@
-from typing import List, Optional
+import time
+import threading
+from collections import deque
 
+class ActionQueue:
+    def __init__(self):
+        self.queue = deque()
+        self.lock = threading.Lock()
 
-def click(delay: float, count: int) -> None:
-    """
-    Simulates mouse clicks with a specified delay.
+    def enqueue(self, action):
+        with self.lock:
+            self.queue.append(action)
 
-    Args:
-        delay (float): The delay in seconds between clicks.
-        count (int): The total number of clicks to perform.
-    """
-    import time
-    for _ in range(count):
-        # Simulate the click (placeholder for actual click functionality)
-        print('Click!')
+    def dequeue(self):
+        with self.lock:
+            if self.queue:
+                return self.queue.popleft()
+            return None
+
+def autoclicker(delay, action_queue):
+    while True:
+        action = action_queue.dequeue()
+        if action:
+            action()  # Execute the action
         time.sleep(delay)
 
+def start_autoclicker(delay):
+    action_queue = ActionQueue()
+    click_thread = threading.Thread(target=autoclicker, args=(delay, action_queue))
+    click_thread.daemon = True
+    click_thread.start()
+    return action_queue
 
-def record_clicks(duration: float) -> List[float]:
-    """
-    Records the time of clicks for a specified duration.
+# Example of button click action
 
-    Args:
-        duration (float): Duration in seconds to record clicks.
+def click_action():
+    print('Button clicked!')
 
-    Returns:
-        List[float]: A list of timestamps when clicks occurred.
-    """
-    import time
-    clicks = []
-    start_time = time.time()
-    while time.time() - start_time < duration:
-        # Simulate detecting a click (placeholder for actual click detection)
-        clicks.append(time.time())
-        time.sleep(1)  # Simulated delay for the next click
-    return clicks
-
-
-def stop_all_clicks() -> None:
-    """
-    Stops all clicking actions. This is a placeholder function.
-    """
-    print('All clicking actions stopped.')
+if __name__ == '__main__':
+    action_queue = start_autoclicker(0.1)
+    for _ in range(10):
+        action_queue.enqueue(click_action)
+        time.sleep(0.2)
