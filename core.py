@@ -1,35 +1,27 @@
 import time
-import threading
+import random
 
 class AutoClicker:
-    def __init__(self, interval=0.1):
-        self.interval = interval  # time in seconds
-        self.running = False
-        self.click_thread = None
+    def __init__(self, click_interval, duration):
+        self.click_interval = click_interval
+        self.duration = duration
 
-    def start(self):
-        if not self.running:
-            self.running = True
-            self.click_thread = threading.Thread(target=self._click_loop)
-            self.click_thread.start()
+    def validate_input(self):
+        if not isinstance(self.click_interval, (int, float)) or self.click_interval <= 0:
+            raise ValueError('Click interval must be a positive number.')
+        if not isinstance(self.duration, (int, float)) or self.duration <= 0:
+            raise ValueError('Duration must be a positive number.')
 
-    def stop(self):
-        self.running = False
-        if self.click_thread:
-            self.click_thread.join()  # wait for thread to finish
+    def start_clicking(self):
+        self.validate_input()
+        end_time = time.time() + self.duration
+        while time.time() < end_time:
+            self.click()  # Simulate a click
+            time.sleep(self.click_interval)
 
-    def _click_loop(self):
-        while self.running:
-            self.single_click()
-            time.sleep(self.interval)
+    def click(self):
+        # Simulate a click action\n        print('Click!')
 
-    def single_click(self):
-        # Add actual clicking mechanism here
-        print('Click!')
-
-# Example usage:
 if __name__ == '__main__':
-    auto_clicker = AutoClicker(interval=0.05)
-    auto_clicker.start()
-    time.sleep(1)  # Let it click for a second
-    auto_clicker.stop()
+    clicker = AutoClicker(click_interval=0.5, duration=10)
+    clicker.start_clicking()
