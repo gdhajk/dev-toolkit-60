@@ -1,33 +1,36 @@
-import re
-
-class ValidationError(Exception):
-    pass
-
-def validate_click_coordinates(coordinates):
-    if not isinstance(coordinates, tuple):
-        raise ValidationError('Coordinates must be a tuple.')
-    if len(coordinates) != 2:
-        raise ValidationError('Coordinates must contain exactly two values.')
-    x, y = coordinates
-    if not (isinstance(x, int) and isinstance(y, int)):
-        raise ValidationError('Coordinates must be integers.')
-    if not (0 <= x <= 1920 and 0 <= y <= 1080):
-        raise ValidationError('Coordinates must be within screen resolution bounds.')
-
 def validate_click_interval(interval):
     if not isinstance(interval, (int, float)):
-        raise ValidationError('Interval must be a number.')
+        raise ValueError("Click interval must be a number.")
     if interval <= 0:
-        raise ValidationError('Interval must be positive.')
+        raise ValueError("Click interval must be greater than zero.")
+    return True
 
-def validate_clicks_count(count):
+
+def validate_click_count(count):
     if not isinstance(count, int):
-        raise ValidationError('Count must be an integer.')
+        raise ValueError("Click count must be an integer.")
     if count <= 0:
-        raise ValidationError('Count must be positive.')
+        raise ValueError("Click count must be greater than zero.")
+    return True
+
 
 def validate_hotkey(hotkey):
-    if not isinstance(hotkey, str):
-        raise ValidationError('Hotkey must be a string.')
-    if not re.match(r'^[a-zA-Z]+$', hotkey):
-        raise ValidationError('Hotkey must contain only letters.')
+    if not isinstance(hotkey, str) or len(hotkey) == 0:
+        raise ValueError("Hotkey must be a non-empty string.")
+    return True
+
+
+# Example usage in a main processing loop:
+if __name__ == "__main__":
+    try:
+        click_interval = 0.1  # Example interval
+        click_count = 10  # Example count
+        hotkey = 'ctrl+c'  # Example hotkey
+        
+        validate_click_interval(click_interval)
+        validate_click_count(click_count)
+        validate_hotkey(hotkey)
+
+        print("All inputs are valid.")
+    except ValueError as e:
+        print(f"Input validation error: {e}")
