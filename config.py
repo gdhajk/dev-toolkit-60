@@ -1,26 +1,34 @@
+import json
 import os
-import logging
-from logging.handlers import RotatingFileHandler
 
-def setup_logger(log_file='app.log', max_bytes=1024 * 1024 * 5, backup_count=5):
-    """Sets up a rotating logger."""
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    
-    # Create a rotating file handler
-    handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=backup_count)
-    handler.setLevel(logging.DEBUG)
+DEFAULTS = {
+    'click_interval': 0.1,
+    'click_count': 100,
+    'mouse_button': 'left',
+    'enable_logging': True
+}
 
-    # Create a formatter and set it for the handler
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    
-    # Add the handler to the logger
-    logger.addHandler(handler)
-    
-    return logger
+class ConfigLoader:
+    def __init__(self, filepath='config.json'):
+        self.filepath = filepath
+        self.config = self.load_config()
 
-# Example of setting up the logger
+    def load_config(self):
+        if os.path.exists(self.filepath):
+            with open(self.filepath, 'r') as file:
+                try:
+                    user_config = json.load(file)
+                except json.JSONDecodeError:
+                    print('Error decoding JSON, using defaults.')
+                    return DEFAULTS
+            return {**DEFAULTS, **user_config}
+        else:
+            print('Config file not found, using defaults.')
+            return DEFAULTS
+
+    def get(self, key):
+        return self.config.get(key, DEFAULTS.get(key))
+
 if __name__ == '__main__':
-    my_logger = setup_logger()
-    my_logger.info('Logger is set up and ready to go!')
+    loader = ConfigLoader()
+    print(loader.config)  # Print loaded configuration for testing
