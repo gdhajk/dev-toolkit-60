@@ -1,33 +1,33 @@
 import time
-import threading
+
+class InputValidationError(Exception):
+    pass
+
+def validate_click_interval(interval):
+    if not isinstance(interval, (int, float)):
+        raise InputValidationError('Interval must be a number.')
+    if interval <= 0:
+        raise InputValidationError('Interval must be greater than zero.')
 
 class AutoClicker:
-    def __init__(self, interval=1):
-        self.interval = interval
-        self.running = False
-        self.click_thread = None
+    def __init__(self, click_interval):
+        validate_click_interval(click_interval)
+        self.click_interval = click_interval
 
     def start_clicking(self):
-        if not self.running:
-            self.running = True
-            self.click_thread = threading.Thread(target=self._click_loop)
-            self.click_thread.start()
-
-    def stop_clicking(self):
-        if self.running:
-            self.running = False
-            self.click_thread.join()
-
-    def _click_loop(self):
-        while self.running:
-            self.perform_click()
-            time.sleep(self.interval)
+        try:
+            print('AutoClicker started with an interval of', self.click_interval)
+            while True:
+                self.perform_click()
+                time.sleep(self.click_interval)
+        except KeyboardInterrupt:
+            print('AutoClicker stopped by user.')
 
     def perform_click(self):
-        print("Click!")  # Replace with actual click logic
+        # Simulate the click event
+        print('Click!')
 
 if __name__ == '__main__':
-    clicker = AutoClicker(interval=0.5)
-    clicker.start_clicking()
-    time.sleep(5)
-    clicker.stop_clicking()
+    click_interval = 0.5  # Set your click interval here
+    auto_clicker = AutoClicker(click_interval)
+    auto_clicker.start_clicking()
