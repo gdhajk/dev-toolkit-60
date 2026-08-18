@@ -1,34 +1,20 @@
-import json
 import os
 
-DEFAULTS = {
-    'click_interval': 0.1,
-    'click_count': 100,
-    'mouse_button': 'left',
-    'enable_logging': True
-}
-
-class ConfigLoader:
-    def __init__(self, filepath='config.json'):
-        self.filepath = filepath
-        self.config = self.load_config()
+class Config:
+    def __init__(self):
+        self.load_config()
 
     def load_config(self):
-        if os.path.exists(self.filepath):
-            with open(self.filepath, 'r') as file:
-                try:
-                    user_config = json.load(file)
-                except json.JSONDecodeError:
-                    print('Error decoding JSON, using defaults.')
-                    return DEFAULTS
-            return {**DEFAULTS, **user_config}
-        else:
-            print('Config file not found, using defaults.')
-            return DEFAULTS
+        self.settings = {
+            'click_delay': self.get_env_variable('CLICK_DELAY', 0.1),
+            'max_clicks': self.get_env_variable('MAX_CLICKS', 1000),
+            'click_button': self.get_env_variable('CLICK_BUTTON', 'left')
+        }
 
-    def get(self, key):
-        return self.config.get(key, DEFAULTS.get(key))
+    def get_env_variable(self, var_name, default):
+        return float(os.getenv(var_name, default))
 
-if __name__ == '__main__':
-    loader = ConfigLoader()
-    print(loader.config)  # Print loaded configuration for testing
+    def get_setting(self, key):
+        return self.settings.get(key)
+
+config = Config()  # Create a global config instance
