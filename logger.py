@@ -1,36 +1,47 @@
 import logging
 
-# Configure the logger
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
-
 class Logger:
-    def __init__(self, name):
-        self.logger = logging.getLogger(name)
+    """
+    A simple logger class for the autoclicker.
+    """
 
-    def debug(self, message):
+    def __init__(self, name: str) -> None:
+        """
+        Initializes the logger with a name and sets the log level.
+        """
+        self.logger = logging.getLogger(name)
+        self.logger.setLevel(logging.DEBUG)
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
+
+    def debug(self, message: str) -> None:
+        """
+        Logs a debug message.
+        """
         self.logger.debug(message)
 
-    def info(self, message):
+    def info(self, message: str) -> None:
+        """
+        Logs an informational message.
+        """
         self.logger.info(message)
 
-    def warning(self, message):
+    def warning(self, message: str) -> None:
+        """
+        Logs a warning message.
+        """
         self.logger.warning(message)
 
-    def error(self, message):
+    def error(self, message: str) -> None:
+        """
+        Logs an error message.
+        """
         self.logger.error(message)
 
-    def critical(self, message):
+    def critical(self, message: str) -> None:
+        """
+        Logs a critical message.
+        """
         self.logger.critical(message)
-
-    def exception(self, message):
-        self.logger.exception(message)
-
-# Example of usage
-if __name__ == '__main__':
-    log = Logger('MyLogger')
-    try:
-        result = 10 / 0  # This will raise an exception
-    except ZeroDivisionError as e:
-        log.exception('An error occurred')
-    log.info('Logging completed')
