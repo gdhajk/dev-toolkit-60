@@ -1,43 +1,29 @@
 import time
-import threading
-from collections import deque
+import random
 
-class ActionQueue:
-    def __init__(self):
-        self.queue = deque()
-        self.lock = threading.Lock()
+class AutoClicker:
+    def __init__(self, interval=0.1, clicks=1):
+        self.interval = interval  # time between clicks
+        self.clicks = clicks      # number of clicks
 
-    def enqueue(self, action):
-        with self.lock:
-            self.queue.append(action)
+    def perform_clicks(self):
+        for _ in range(self.clicks):
+            self.click()
+            time.sleep(self.interval)
 
-    def dequeue(self):
-        with self.lock:
-            if self.queue:
-                return self.queue.popleft()
-            return None
+    def click(self):
+        # Simulating a click action
+        print('Click!')  # Placeholder for actual click functionality
 
-def autoclicker(delay, action_queue):
-    while True:
-        action = action_queue.dequeue()
-        if action:
-            action()  # Execute the action
-        time.sleep(delay)
+    def set_interval(self, interval):
+        self.interval = interval
 
-def start_autoclicker(delay):
-    action_queue = ActionQueue()
-    click_thread = threading.Thread(target=autoclicker, args=(delay, action_queue))
-    click_thread.daemon = True
-    click_thread.start()
-    return action_queue
+    def set_clicks(self, clicks):
+        self.clicks = clicks
 
-# Example of button click action
-
-def click_action():
-    print('Button clicked!')
+def random_interval(min_interval=0.05, max_interval=0.5):
+    return random.uniform(min_interval, max_interval)
 
 if __name__ == '__main__':
-    action_queue = start_autoclicker(0.1)
-    for _ in range(10):
-        action_queue.enqueue(click_action)
-        time.sleep(0.2)
+    auto_clicker = AutoClicker()  # default interval and clicks
+    auto_clicker.perform_clicks()  # Execute clicks
