@@ -1,27 +1,24 @@
 import time
-import random
 
 class AutoClicker:
-    def __init__(self, click_interval, duration):
-        self.click_interval = click_interval
-        self.duration = duration
+    def __init__(self, interval):
+        self.interval = interval
+        self.running = False
 
-    def validate_input(self):
-        if not isinstance(self.click_interval, (int, float)) or self.click_interval <= 0:
-            raise ValueError('Click interval must be a positive number.')
-        if not isinstance(self.duration, (int, float)) or self.duration <= 0:
-            raise ValueError('Duration must be a positive number.')
-
-    def start_clicking(self):
-        self.validate_input()
-        end_time = time.time() + self.duration
-        while time.time() < end_time:
-            self.click()  # Simulate a click
-            time.sleep(self.click_interval)
+    def start(self):
+        self.running = True
+        print('AutoClicker started')
+        while self.running:
+            self.click()
+            time.sleep(self.interval)
 
     def click(self):
-        # Simulate a click action\n        print('Click!')
+        print('Click!')  # Simulate a mouse click
 
-if __name__ == '__main__':
-    clicker = AutoClicker(click_interval=0.5, duration=10)
-    clicker.start_clicking()
+    def stop(self):
+        self.running = False
+        print('AutoClicker stopped')
+
+    def set_interval(self, new_interval):
+        self.interval = new_interval
+        print(f'Interval set to {self.interval} seconds')
