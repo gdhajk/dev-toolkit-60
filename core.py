@@ -1,32 +1,33 @@
 import time
-from threading import Thread
-from pynput.mouse import Button, Controller
+import threading
 
 class AutoClicker:
-    def __init__(self, interval=0.1):
-        self.interval = interval  
+    def __init__(self, delay):
+        self.delay = delay
         self.running = False
-        self.mouse = Controller()
+        self.thread = None
 
-    def start_clicking(self):
-        self.running = True
-        while self.running:
-            self.mouse.click(Button.left)
-            time.sleep(self.interval)
-
-    def stop_clicking(self):
-        self.running = False
-
-    def toggle(self):
+    def start(self):
         if not self.running:
-            Thread(target=self.start_clicking).start()
-        else:
-            self.stop_clicking()
+            self.running = True
+            self.thread = threading.Thread(target=self._click)
+            self.thread.start()
+
+    def stop(self):
+        self.running = False
+        if self.thread:
+            self.thread.join()
+
+    def _click(self):
+        while self.running:
+            self._perform_click()
+            time.sleep(self.delay)
+
+    def _perform_click(self):
+        print('Click!')  # Simulating a click action
 
 if __name__ == '__main__':
-    clicker = AutoClicker(interval=0.1)
-    try:
-        clicker.toggle()  # Starts clicking
-        time.sleep(5)  # Click for 5 seconds
-    finally:
-        clicker.stop_clicking()  # Ensure clicking stops
+    clicker = AutoClicker(0.1)  # 10 clicks per second
+    clicker.start()
+    time.sleep(1)  # Let it click for 1 second
+    clicker.stop()  # Stop clicking
