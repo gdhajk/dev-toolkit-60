@@ -1,24 +1,36 @@
 import logging
-from logging.handlers import RotatingFileHandler
 
-def setup_logger(log_file='app.log', max_bytes=5*1024*1024, backup_count=3):
-    logger = logging.getLogger('AutoClickerLogger')
-    logger.setLevel(logging.DEBUG)
+# Configure the logger
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
-    # Create a rotating file handler
-    handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=backup_count)
-    handler.setLevel(logging.DEBUG)
+class Logger:
+    def __init__(self, name):
+        self.logger = logging.getLogger(name)
 
-    # Create a logging format
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
+    def debug(self, message):
+        self.logger.debug(message)
 
-    # Add the handler to the logger
-    logger.addHandler(handler)
+    def info(self, message):
+        self.logger.info(message)
 
-    return logger
+    def warning(self, message):
+        self.logger.warning(message)
 
+    def error(self, message):
+        self.logger.error(message)
+
+    def critical(self, message):
+        self.logger.critical(message)
+
+    def exception(self, message):
+        self.logger.exception(message)
+
+# Example of usage
 if __name__ == '__main__':
-    # Example usage
-    log = setup_logger()
-    log.info('Logger setup complete.')
+    log = Logger('MyLogger')
+    try:
+        result = 10 / 0  # This will raise an exception
+    except ZeroDivisionError as e:
+        log.exception('An error occurred')
+    log.info('Logging completed')
