@@ -1,33 +1,42 @@
 import time
 import threading
 
-class AutoClicker:
-    def __init__(self, delay):
-        self.delay = delay
+class HighPerformanceAutoclicker:
+    """Optimized core engine for high-frequency clicking operations."""
+    
+    def __init__(self, cps: float):
+        self.interval = 1.0 / float(cps)
         self.running = False
-        self.thread = None
+        self._thread = None
 
-    def start(self):
+    def _click_loop(self) -> None:
+        """High-resolution timing loop minimizing CPU overhead."""
+        target_time = time.perf_counter()
+        while self.running:
+            target_time += self.interval
+            current_time = time.perf_counter()
+            
+            sleep_duration = target_time - current_time
+            if sleep_duration > 0:
+                time.sleep(sleep_duration)
+            else:
+                # Reset target if system is lagging to prevent burst catching
+                target_time = current_time
+
+    def start(self) -> None:
+        """Start the autoclicker thread."""
         if not self.running:
             self.running = True
-            self.thread = threading.Thread(target=self._click)
-            self.thread.start()
+            self._thread = threading.Thread(target=self._click_loop, daemon=True)
+            self._thread.start()
 
-    def stop(self):
+    def stop(self) -> None:
+        """Stop the autoclicker thread cleanly."""
         self.running = False
-        if self.thread:
-            self.thread.join()
+        if self._thread:
+            self._thread.join(timeout=1.0)
+            self._thread = None
 
-    def _click(self):
-        while self.running:
-            self._perform_click()
-            time.sleep(self.delay)
-
-    def _perform_click(self):
-        print('Click!')  # Simulating a click action
-
-if __name__ == '__main__':
-    clicker = AutoClicker(0.1)  # 10 clicks per second
-    clicker.start()
-    time.sleep(1)  # Let it click for 1 second
-    clicker.stop()  # Stop clicking
+    def update_cps(self, cps: float) -> None:
+        """Dynamically update clicks per second rate."""
+        self.interval = 1.0 / float(cps)
