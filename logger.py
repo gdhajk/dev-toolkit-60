@@ -1,47 +1,40 @@
 import logging
+from logging.handlers import RotatingFileHandler
+import os
 
-class Logger:
-    """
-    A simple logger class for the autoclicker.
-    """
 
-    def __init__(self, name: str) -> None:
-        """
-        Initializes the logger with a name and sets the log level.
-        """
-        self.logger = logging.getLogger(name)
-        self.logger.setLevel(logging.DEBUG)
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
+def setup_logger(name: str = "autoclicker") -> logging.Logger:
+    """Configure and return a rotating file logger for the autoclicker."""
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
 
-    def debug(self, message: str) -> None:
-        """
-        Logs a debug message.
-        """
-        self.logger.debug(message)
+    if logger.handlers:
+        return logger
 
-    def info(self, message: str) -> None:
-        """
-        Logs an informational message.
-        """
-        self.logger.info(message)
+    log_dir = "logs"
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
 
-    def warning(self, message: str) -> None:
-        """
-        Logs a warning message.
-        """
-        self.logger.warning(message)
+    log_file = os.path.join(log_dir, "autoclicker.log")
+    
+    # Rotate files at 5MB, keep up to 3 backup files
+    handler = RotatingFileHandler(
+        log_file,
+        maxBytes=5 * 1024 * 1024,
+        backupCount=3,
+        encoding="utf-8"
+    )
+    
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    handler.setFormatter(formatter)
+    
+    logger.addHandler(handler)
+    
+    # Also add a stream handler for console output during debugging
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
 
-    def error(self, message: str) -> None:
-        """
-        Logs an error message.
-        """
-        self.logger.error(message)
-
-    def critical(self, message: str) -> None:
-        """
-        Logs a critical message.
-        """
-        self.logger.critical(message)
+    return logger
