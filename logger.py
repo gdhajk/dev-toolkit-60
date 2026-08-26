@@ -1,40 +1,35 @@
 import logging
-from logging.handlers import RotatingFileHandler
-import os
+import sys
+from datetime import datetime
 
+class ClickerLogger:
+    def __init__(self, name: str = "dev-toolkit-60") -> None:
+        self.logger = logging.getLogger(name)
+        self.logger.setLevel(logging.DEBUG)
+        
+        if not self.logger.handlers:
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setLevel(logging.DEBUG)
+            formatter = logging.Formatter(
+                "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S"
+            )
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
 
-def setup_logger(name: str = "autoclicker") -> logging.Logger:
-    """Configure and return a rotating file logger for the autoclicker."""
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    def debug(self, message: str) -> None:
+        self.logger.debug(message)
 
-    if logger.handlers:
-        return logger
+    def info(self, message: str) -> None:
+        self.logger.info(message)
 
-    log_dir = "logs"
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
+    def warning(self, message: str) -> None:
+        self.logger.warning(message)
 
-    log_file = os.path.join(log_dir, "autoclicker.log")
-    
-    # Rotate files at 5MB, keep up to 3 backup files
-    handler = RotatingFileHandler(
-        log_file,
-        maxBytes=5 * 1024 * 1024,
-        backupCount=3,
-        encoding="utf-8"
-    )
-    
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    handler.setFormatter(formatter)
-    
-    logger.addHandler(handler)
-    
-    # Also add a stream handler for console output during debugging
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
+    def error(self, message: str) -> None:
+        self.logger.error(message)
 
-    return logger
+    def critical(self, message: str) -> None:
+        self.logger.critical(message)
+
+logger = ClickerLogger()
