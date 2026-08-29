@@ -1,91 +1,59 @@
-import json
-from typing import List, Dict, Any, Optional
+import time
+import threading
+import pyautogui
 
+pyautogui.FAILSAFE = True
 
-def validate_click_data(data: Dict[str, Any]) -> bool:
-    """Check if the provided data has valid structure for clicks."""
-    if not isinstance(data, dict):
-        return False
-    if 'clicks' not in data or 'interval' not in data:
-        return False
-    clicks = data['clicks']
-    if not isinstance(clicks, list) or len(clicks) == 0:
-        return False
-    for click in clicks:
-        if not isinstance(click, dict):
-            return False
-        if 'x' not in click or 'y' not in click:
-            return False
+class ClickerHelper:
+    """Provides helper methods for autoclicker functionality."""
+
+    def __init__(self):
+        self.is_running = False
+        self.click_interval = 0.5
+        self.target_position = (100, 100)
+        self.click_thread = None
+
+    def update_settings(self, interval=None, position=None):
+        if interval is not None:
+            self.click_interval = max(0.01, interval)
+        if position is not None:
+            self.target_position = position
+
+    def _perform_click(self):
         try:
-            float(click['x'])
-            float(click['y'])
-        except (ValueError, TypeError):
+            pyautogui.moveTo(self.target_position[0], self.target_position[1])
+            pyautogui.click()
+        except Exception:
+            pass
+
+    def _click_loop(self):
+        while self.is_running:
+            self._perform_click()
+            time.sleep(self.click_interval)
+
+    def start_clicking(self):
+        if self.is_running:
             return False
-    interval = data['interval']
-    if not isinstance(interval, (int, float)) or interval <= 0:
-        return False
-    return True
-
-
-def process_click_data(raw_clicks: List[Dict[str, Any]], default_interval: float = 0.1) -> Dict[str, Any]:
-    """Convert raw list of clicks into structured data dict."""
-    if not raw_clicks:
-        return {'clicks': [], 'interval': default_interval}
-    processed_clicks = []
-    for idx, click in enumerate(raw_clicks):
-        x = click.get('x', 0)
-        y = click.get('y', 0)
-        delay = click.get('delay', default_interval)
-        processed_clicks.append({
-            'x': float(x),
-            'y': float(y),
-            'delay': float(delay),
-            'order': idx + 1
-        })
-    return {
-        'clicks': processed_clicks,
-        'interval': default_interval,
-        'count': len(processed_clicks)
-    }
-
-
-def save_to_file(data: Dict[str, Any], path: str) -> bool:
-    """Persist click data to a JSON file if valid."""
-    if not validate_click_data(data):
-        return False
-    try:
-        with open(path, 'w', encoding='utf-8') as file:
-            json.dump(data, file, indent=4)
+        self.is_running = True
+        self.click_thread = threading.Thread(target=self._click_loop)
+        self.click_thread.daemon = True
+        self.click_thread.start()
         return True
-    except (IOError, OSError, TypeError):
-        return False
 
+    def stop_clicking(self):
+        self.is_running = False
+        if self.click_thread and self.click_thread.is_alive():
+            self.click_thread.join(timeout=2.0)
+        return True
 
-def load_from_file(path: str) -> Optional[Dict[str, Any]]:
-    """Retrieve click data from JSON file and validate it."""
-    try:
-        with open(path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-        if validate_click_data(data):
-            return data
-        return None
-    except (IOError, OSError, json.JSONDecodeError, TypeError):
-        return None
+    def get_status(self):
+        return {
+            "running": self.is_running,
+            "interval": self.click_interval,
+            "position": self.target_position
+        }
 
-
-def get_click_summary(data: Dict[str, Any]) -> Dict[str, Any]:
-    """Generate summary statistics from valid click data."""
-    if not validate_click_data(data):
-        return {'valid': False}
-    clicks = data['clicks']
-    xs = [c['x'] for c in clicks]
-    ys = [c['y'] for c in clicks]
-    summary = {
-        'valid': True,
-        'click_count': len(clicks),
-        'interval': data['interval'],
-        'x_range': (min(xs), max(xs)),
-        'y_range': (min(ys), max(ys)),
-        'center': (sum(xs)/len(xs), sum(ys)/len(ys))
-    }
-    return summary
+    def set_position_from_mouse(self):
+        pos = pyautogui.position()
+        self.target_position = (pos.x, pos.y)
+        return self.target_position
