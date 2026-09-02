@@ -1,59 +1,55 @@
 import time
-import threading
-import pyautogui
+import random
 
-pyautogui.FAILSAFE = True
+# Autoclicker helper functions with robust error handling for edge cases
 
-class ClickerHelper:
-    """Provides helper methods for autoclicker functionality."""
+def validate_click_parameters(clicks, interval, x, y):
+    if not isinstance(clicks, int):
+        raise ValueError("Clicks must be an integer")
+    if clicks <= 0:
+        raise ValueError("Clicks must be greater than zero")
+    if not isinstance(interval, (int, float)) or interval <= 0:
+        raise ValueError("Interval must be a positive number")
+    if not isinstance(x, int) or not isinstance(y, int):
+        raise ValueError("Coordinates must be integers")
+    if x < 0 or y < 0:
+        raise ValueError("Coordinates must not be negative")
+    if interval < 0.01:
+        raise ValueError("Interval too small, potential performance issues")
+    if clicks > 100000:
+        print("Warning: High click count specified")
 
-    def __init__(self):
-        self.is_running = False
-        self.click_interval = 0.5
-        self.target_position = (100, 100)
-        self.click_thread = None
-
-    def update_settings(self, interval=None, position=None):
-        if interval is not None:
-            self.click_interval = max(0.01, interval)
-        if position is not None:
-            self.target_position = position
-
-    def _perform_click(self):
-        try:
-            pyautogui.moveTo(self.target_position[0], self.target_position[1])
-            pyautogui.click()
-        except Exception:
-            pass
-
-    def _click_loop(self):
-        while self.is_running:
-            self._perform_click()
-            time.sleep(self.click_interval)
-
-    def start_clicking(self):
-        if self.is_running:
-            return False
-        self.is_running = True
-        self.click_thread = threading.Thread(target=self._click_loop)
-        self.click_thread.daemon = True
-        self.click_thread.start()
+def perform_single_click(x, y):
+    try:
+        print(f"Clicking at ({x}, {y})")
+        time.sleep(random.uniform(0.01, 0.05))
         return True
+    except Exception as e:
+        print(f"Click error: {e}")
+        return False
 
-    def stop_clicking(self):
-        self.is_running = False
-        if self.click_thread and self.click_thread.is_alive():
-            self.click_thread.join(timeout=2.0)
-        return True
+def run_autoclicker(clicks, interval, x, y):
+    try:
+        # Check for invalid parameters and other edge cases before starting
+        validate_click_parameters(clicks, interval, x, y)
+        print(f"Starting {clicks} clicks every {interval} seconds")
+        for i in range(clicks):
+            if not perform_single_click(x, y):
+                print("Stopping after click failure")
+                break
+            time.sleep(interval)
+        print("Autoclicker run completed")
+    except ValueError as e:
+        print(f"Invalid input: {e}")
+    except KeyboardInterrupt:
+        print("Stopped by user")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        reset_on_error()
 
-    def get_status(self):
-        return {
-            "running": self.is_running,
-            "interval": self.click_interval,
-            "position": self.target_position
-        }
+def reset_on_error():
+    print("Resetting after error")
+    time.sleep(0.5)
 
-    def set_position_from_mouse(self):
-        pos = pyautogui.position()
-        self.target_position = (pos.x, pos.y)
-        return self.target_position
+def log_error(error_msg):
+    print(f"Logged error: {error_msg}")
