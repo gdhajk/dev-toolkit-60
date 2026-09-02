@@ -1,66 +1,79 @@
-"""
-Constants for autoclicker error handling in dev-toolkit-60.
-"""
+import json
+from enum import Enum
+from typing import Dict, Any
 
-import sys
-from typing import Dict, Optional
+class MouseButton(Enum):
+    """Mouse buttons for clicking."""
+    LEFT = "left"
+    RIGHT = "right"
+    MIDDLE = "middle"
 
-# Autoclicker parameter constants
-DEFAULT_INTERVAL = 0.05
-MIN_INTERVAL = 0.001
-MAX_INTERVAL = 10.0
-MAX_CLICKS = 100000
+class ClickMode(Enum):
+    """Modes for autoclicker operation."""
+    SINGLE = "single"
+    DOUBLE = "double"
+    BURST = "burst"
+    HOLD = "hold"
 
-# Screen bounds constants
-MIN_X = 0
-MIN_Y = 0
-MAX_X = 2560
-MAX_Y = 1440
+# Default timing constants in milliseconds
+DEFAULT_INTERVAL = 100
+MIN_INTERVAL = 10
+MAX_INTERVAL = 10000
 
-# Error codes for edge cases
-ERR_INVALID_INTERVAL = 1
-ERR_OUT_OF_BOUNDS = 2
-ERR_PERMISSION = 3
-ERR_CLICK_FAIL = 4
-ERR_UNKNOWN = 0
+DEFAULT_RANDOM_MIN = 50
+DEFAULT_RANDOM_MAX = 200
 
-# Error messages
-ERROR_MESSAGES: Dict[int, str] = {
-    ERR_INVALID_INTERVAL: "Interval must be between {min} and {max} seconds",
-    ERR_OUT_OF_BOUNDS: "Position out of bounds: ({x}, {y}) not in ({minx}-{maxx}, {miny}-{maxy})",
-    ERR_PERMISSION: "Permission denied for autoclick actions",
-    ERR_CLICK_FAIL: "Click operation failed",
-    ERR_UNKNOWN: "Unknown autoclick error",
+# Hotkey constants
+START_HOTKEY = "f6"
+STOP_HOTKEY = "f7"
+PAUSE_HOTKEY = "f8"
+EXIT_HOTKEY = "esc"
+
+# Application constants
+APP_NAME = "dev-toolkit-60"
+VERSION = "0.6.0"
+CONFIG_FILE = "autoclicker_config.json"
+LOG_FILE = "autoclicker.log"
+
+# Default configuration dictionary
+DEFAULT_CONFIG: Dict[str, Any] = {
+    "interval": DEFAULT_INTERVAL,
+    "button": MouseButton.LEFT.value,
+    "mode": ClickMode.SINGLE.value,
+    "randomize": False,
+    "random_min": DEFAULT_RANDOM_MIN,
+    "random_max": DEFAULT_RANDOM_MAX,
+    "start_hotkey": START_HOTKEY,
+    "stop_hotkey": STOP_HOTKEY,
+    "pause_hotkey": PAUSE_HOTKEY,
+    "exit_hotkey": EXIT_HOTKEY,
+    "click_count": 0,
+    "burst_count": 5,
+    "burst_delay": 500
 }
 
-# Error recovery constants
-MAX_RETRIES = 3
-RETRY_DELAY = 0.5
+def get_default_config() -> Dict[str, Any]:
+    """Return a copy of the default configuration."""
+    return DEFAULT_CONFIG.copy()
 
-def validate_params(interval: float, x: int, y: int) -> Optional[int]:
-    """Return error code for invalid params or None."""
-    if interval < MIN_INTERVAL or interval > MAX_INTERVAL:
-        return ERR_INVALID_INTERVAL
-    if x < MIN_X or x > MAX_X or y < MIN_Y or y > MAX_Y:
-        return ERR_OUT_OF_BOUNDS
-    return None
-
-def format_error(code: int, **kwargs) -> str:
-    """Format error message, handle missing keys."""
-    template = ERROR_MESSAGES.get(code, ERROR_MESSAGES[ERR_UNKNOWN])
+def load_config(file_path: str = CONFIG_FILE) -> Dict[str, Any]:
+    """Load config from file or return defaults."""
     try:
-        return template.format(**kwargs)
-    except (KeyError, ValueError):
-        return template
+        with open(file_path, "r") as file:
+            config = json.load(file)
+            if not isinstance(config, dict):
+                return get_default_config()
+            return config
 
-def handle_error(code: int, **context) -> None:
-    """Print error and exit for critical cases."""
-    msg = format_error(code, **context)
-    print(f"Error {code}: {msg}")
-    if code == ERR_PERMISSION:
-        print("Exiting due to permission issue.")
-        sys.exit(1)
+    except (FileNotFoundError, json.JSONDecodeError, PermissionError):
+        return get_default_config()
 
-# Additional constants
-CLICK_MODIFIERS = ["ctrl", "shift"]
-LOG_LEVELS = {"DEBUG": 10, "INFO": 20, "ERROR": 40}
+def save_config(config: Dict[str, Any], file_path: str = CONFIG_FILE) -> bool:
+    """Save config to JSON file."""
+    try:
+        with open(file_path, "w") as file:
+            json.dump(config, file, indent=2)
+        return True
+
+    except (IOError, PermissionError):
+        return False
