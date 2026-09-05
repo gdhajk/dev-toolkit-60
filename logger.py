@@ -1,41 +1,48 @@
 import logging
 import sys
+from pathlib import Path
 from typing import Optional
 
-
-class AutoclickerLogger:
-    """Provides a standardized logging interface for the dev-toolkit-60 autoclicker."""
-
-    def __init__(self, name: str = "autoclicker", level: int = logging.INFO) -> None:
-        self.logger = logging.getLogger(name)
-        self.logger.setLevel(level)
-        
-        if not self.logger.handlers:
-            handler = logging.StreamHandler(sys.stdout)
-            formatter = logging.Formatter(
-                "[%(asctime)s] [%(levelname)s] %(name)s: %(message)s",
-                datefmt="%Y-%m-%d %H:%M:%S"
-            )
-            handler.setFormatter(formatter)
-            self.logger.addHandler(handler)
-
-    def debug(self, message: str) -> None:
-        """Log a debug message."""
-        self.logger.debug(message)
-
-    def info(self, message: str) -> None:
-        """Log a general information message."""
-        self.logger.info(message)
-
-    def warning(self, message: str) -> None:
-        """Log a warning message."""
-        self.logger.warning(message)
-
-    def error(self, message: str, exc_info: Optional[bool] = None) -> None:
-        """Log an error message with optional exception info."""
-        self.logger.error(message, exc_info=exc_info)
+DEFAULT_LOG_FORMAT = "[%(asctime)s] [%(levelname)s] %(name)s: %(message)s"
+DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
-def get_logger(name: str) -> AutoclickerLogger:
-    """Factory function to instantiate a configured logger."""
-    return AutoclickerLogger(name=name)
+class ClickerLogger:
+    """Centralized logging manager for the autoclicker application."""
+
+    def __init__(self, log_file: Optional[Path] = None, debug: bool = False):
+        self.logger = logging.getLogger("AutoClicker")
+        self.logger.setLevel(logging.DEBUG if debug else logging.INFO)
+        self.logger.handlers.clear()
+
+        # Standard console handler setup
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(logging.Formatter(DEFAULT_LOG_FORMAT, datefmt=DATE_FORMAT))
+        self.logger.addHandler(console_handler)
+
+        # Optional persistent file logging
+        if log_file:
+            log_file.parent.mkdir(parents=True, exist_ok=True)
+            file_handler = logging.FileHandler(log_file, encoding="utf-8")
+            file_handler.setFormatter(logging.Formatter(DEFAULT_LOG_FORMAT, datefmt=DATE_FORMAT))
+            self.logger.addHandler(file_handler)
+
+    def log_action(self, action: str, x: int, y: int) -> None:
+        """Log mouse actions with screen coordinates."""
+        self.logger.debug("Action '%s' triggered at coordinates (%d, %d)", action, x, y)
+
+    def log_status(self, active: bool, interval: float) -> None:
+        """Log state changes and current click interval configuration."""
+        state = "STARTED" if active else "STOPPED"
+        self.logger.info("Engine %s | Target interval: %.3fs", state, interval)
+
+    def get_logger(self) -> logging.Logger:
+        """Return raw logger instance."""
+        return self.logger
+
+
+def setup_logger(log_file: Optional[str] = None, debug: bool = False) -> logging.Logger:
+    """Helper function to initialize logging setup."""
+    path = Path(log_file) if log_file else None
+    manager = ClickerLogger(log_file=path, debug=debug)
+    return manager.get_logger()
