@@ -1,33 +1,34 @@
-from typing import Dict, Any, Optional
 import json
 import os
+from typing import Dict, Any
 
-class ConfigManager:
-    """Handles loading and persistence of application settings."""
+DEFAULT_CONFIG = {
+    "interval": 0.1,
+    "button": "left",
+    "hotkey": "f6",
+    "repeat": 0
+}
 
-    def __init__(self, config_path: str = "settings.json") -> None:
-        self.config_path: str = config_path
-        self.settings: Dict[str, Any] = {
-            "interval": 0.1,
-            "button": "left",
-            "hotkey": "f6"
-        }
+def load_config(filepath: str = "config.json") -> Dict[str, Any]:
+    """Loads configuration from file or returns defaults."""
+    if not os.path.exists(filepath):
+        return DEFAULT_CONFIG.copy()
+    
+    try:
+        with open(filepath, "r") as f:
+            data = json.load(f)
+            # Merge with defaults to ensure missing keys are filled
+            config = DEFAULT_CONFIG.copy()
+            config.update(data)
+            return config
+    except (json.JSONDecodeError, IOError):
+        return DEFAULT_CONFIG.copy()
 
-    def load(self) -> None:
-        """Reads configuration from a local JSON file."""
-        if os.path.exists(self.config_path):
-            with open(self.config_path, "r") as f:
-                self.settings.update(json.load(f))
-
-    def save(self) -> None:
-        """Writes current settings to a JSON file."""
-        with open(self.config_path, "w") as f:
-            json.dump(self.settings, f, indent=4)
-
-    def get(self, key: str, default: Optional[Any] = None) -> Any:
-        """Retrieves a specific configuration value."""
-        return self.settings.get(key, default)
-
-    def set(self, key: str, value: Any) -> None:
-        """Updates a specific configuration value."""
-        self.settings[key] = value
+def save_config(config: Dict[str, Any], filepath: str = "config.json") -> bool:
+    """Persists current configuration to json file."""
+    try:
+        with open(filepath, "w") as f:
+            json.dump(config, f, indent=4)
+        return True
+    except IOError:
+        return False
